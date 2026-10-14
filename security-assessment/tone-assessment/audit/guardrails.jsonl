@@ -1,0 +1,1 @@
+{"_comment": "Append-only guardrail results. One JSON object per check: {\"run_id\": \"...\", \"gate\": \"G4|G5\", \"handoff\": \"review->tone|tone->finalize\", \"result\": \"pass|fail|punchout\", \"checks\": [...], \"ts\": \"...\"}"}

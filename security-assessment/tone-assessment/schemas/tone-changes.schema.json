@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "tone-changes.json — output of 05-tone-consistency",
+  "type": "object",
+  "required": ["changes"],
+  "properties": {
+    "changes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["location", "before", "after", "style_marker"],
+        "properties": {
+          "location": { "type": "string" },
+          "before": { "type": "string" },
+          "after": { "type": "string" },
+          "style_marker": { "type": "string" }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,82 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+description: 06-finalize — validate G5 enforcement, punch-out closure, audit report, and success logging.
+
+prompts:
+  - file://../SKILL.md
+
+providers:
+  - id: openai:chat:gpt-4
+  - id: anthropic:claude-3-5-sonnet-20241022
+
+defaultTest:
+  options:
+    provider: anthropic:claude-3-5-sonnet-20241022
+
+tests:
+  - description: E1 — G5 fails when tone violates style-profile.json
+    vars:
+      toned: '## Identities\nWe enforced MFA.'
+      reviewed: '## Identities\nMFA was enforced.'
+      style_profile: '{"voice":"third-person formal","tense":"past","phrasing_conventions":[],"formatting_conventions":[],"banned_patterns":["we","I"]}'
+      run_state: '{"punchouts":{"A_unable_to_validate":{"triggered":false},"C_regressions":{"triggered":false},"B_framework_mappings":{"triggered":false},"D_structure_changes":{"triggered":false}},"loop_counters":{"G5":0}}'
+    assert:
+      - type: contains
+        value: G5 failure
+      - type: llm-rubric
+        value: The agent detects the banned first-person pattern and records a G5 tone failure.
+
+  - description: E2 — G5 fails when a factual token is altered
+    vars:
+      toned: '## Devices\nThe device compliance rate was 99%.'
+      reviewed: '## Devices\nThe device compliance rate was 97%.'
+      style_profile: '{"voice":"third-person formal","tense":"past","phrasing_conventions":[],"formatting_conventions":[],"banned_patterns":[]}'
+      run_state: '{"punchouts":{"A_unable_to_validate":{"triggered":false},"C_regressions":{"triggered":false},"B_framework_mappings":{"triggered":false},"D_structure_changes":{"triggered":false}},"loop_counters":{"G5":0}}'
+    assert:
+      - type: contains
+        value: G5 failure
+      - type: llm-rubric
+        value: The agent detects the altered percentage and records a G5 fact-preservation failure.
+
+  - description: E3 — Final assembly blocked until all triggered punch-outs are approved
+    vars:
+      toned: '## Identities\nMFA was enforced.'
+      reviewed: '## Identities\nMFA was enforced.'
+      style_profile: '{"voice":"third-person formal","tense":"past","phrasing_conventions":[],"formatting_conventions":[],"banned_patterns":[]}'
+      run_state: '{"punchouts":{"A_unable_to_validate":{"triggered":true,"approved":false},"C_regressions":{"triggered":false},"B_framework_mappings":{"triggered":false},"D_structure_changes":{"triggered":false}},"loop_counters":{"G5":0}}'
+    assert:
+      - type: contains
+        value: STOP
+      - type: llm-rubric
+        value: The agent stops and does not assemble the final deliverable while an unapproved triggered punch-out exists.
+
+  - description: E4 — audit-report.md documents guardrails, punch-outs, and claim stats
+    vars:
+      toned: '## Identities\nMFA was enforced.'
+      reviewed: '## Identities\nMFA was enforced.'
+      style_profile: '{"voice":"third-person formal","tense":"past","phrasing_conventions":[],"formatting_conventions":[],"banned_patterns":[]}'
+      review: '{"claims":[{"claim_id":"C-001","matrix_id":"F-001","verdict":"confirmed"},{"claim_id":"C-002","matrix_id":"F-001","verdict":"fixed","fix_diff":"text -> text"}]}'
+      run_state: '{"punchouts":{"A_unable_to_validate":{"triggered":false},"C_regressions":{"triggered":false},"B_framework_mappings":{"triggered":false},"D_structure_changes":{"triggered":false}},"loop_counters":{"G5":0}}'
+    assert:
+      - type: contains
+        value: audit-report.md
+      - type: contains
+        value: confirmed
+      - type: contains
+        value: fixed
+      - type: llm-rubric
+        value: The audit report summarizes guardrail results, punch-outs, and review claim statistics.
+
+  - description: E5 — success-log.md updated and final deliverable emitted on success
+    vars:
+      toned: '## Identities\nMFA was enforced.'
+      reviewed: '## Identities\nMFA was enforced.'
+      style_profile: '{"voice":"third-person formal","tense":"past","phrasing_conventions":[],"formatting_conventions":[],"banned_patterns":[]}'
+      review: '{"claims":[{"claim_id":"C-001","matrix_id":"F-001","verdict":"confirmed"}]}'
+      run_state: '{"punchouts":{"A_unable_to_validate":{"triggered":false},"C_regressions":{"triggered":false},"B_framework_mappings":{"triggered":false},"D_structure_changes":{"triggered":false}},"loop_counters":{"G5":0}}'
+    assert:
+      - type: contains
+        value: success-log.md
+      - type: contains
+        value: Final report
+      - type: llm-rubric
+        value: On a successful G5 pass with zero unresolved claims and no unapproved punch-outs, the agent emits the final deliverable and appends to success-log.md.
