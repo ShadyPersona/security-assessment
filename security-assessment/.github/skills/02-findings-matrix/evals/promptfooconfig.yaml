@@ -6,11 +6,11 @@ prompts:
 
 providers:
   - id: openai:chat:gpt-4
-  - id: anthropic:claude-3-sonnet-20240229
+  - id: anthropic:claude-3-5-sonnet-20241022
 
 defaultTest:
   options:
-    provider: anthropic:claude-3-sonnet-20240229
+    provider: anthropic:claude-3-5-sonnet-20241022
 
 tests:
   - description: E1 — G1 passes only when all inputs are complete and mapped
