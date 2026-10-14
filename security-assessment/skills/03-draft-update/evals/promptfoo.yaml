@@ -1,0 +1,82 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+description: 03-draft-update — validate G2 enforcement, draft-map coverage, and preservation of structure/tone.
+
+prompts:
+  - file://../SKILL.md
+
+providers:
+  - id: openai:chat:gpt-4
+  - id: anthropic:claude-3-sonnet-20240229
+
+defaultTest:
+  options:
+    provider: anthropic:claude-3-sonnet-20240229
+
+tests:
+  - description: E1 — Drafting blocked until punch-outs are approved
+    vars:
+      matrix: '{"rows":[{"id":"F-001","section":"Identities","finding":"MFA","prior_state":"planned","classification":"unable-to-validate","update_required":false,"cis_ref":"CIS M365 1.1.3","nist_ref":"PR.AA-01"}]}'
+      run_state: '{"punchouts":{"A_unable_to_validate":{"triggered":true,"approved":false},"C_regressions":{"triggered":false,"approved":false}}}'
+    assert:
+      - type: contains
+        value: STOP
+      - type: contains
+        value: punchout-unable-to-validate.md
+      - type: llm-rubric
+        value: The agent does not produce draft.md when required punch-outs are not approved.
+
+  - description: E2 — Every draft section maps to >=1 matrix row
+    vars:
+      matrix: '{"rows":[{"id":"F-001","section":"Identities","finding":"MFA","prior_state":"planned","current_state":"enforced","evidence_path":"exports/identities.csv","classification":"improved","update_required":true,"cis_ref":"CIS M365 1.1.3","nist_ref":"PR.AA-01"}]}'
+      section_map: '[{"heading":"Identities","order":1,"subsections":[]}]'
+      run_state: '{"punchouts":{"A_unable_to_validate":{"triggered":false},"C_regressions":{"triggered":false}}}'
+    assert:
+      - type: contains-json
+        value: |
+          {
+            "draft-map.json": {"sections": [{"heading": "Identities", "matrix_ids": ["F-001"]}]}
+          }
+      - type: llm-rubric
+        value: draft-map.json maps every section to at least one matrix row ID.
+
+  - description: E3 — Prior report structure and tone are preserved
+    vars:
+      prior_report: '# Quarterly Security Assessment\n\n## Identities\nMulti-factor authentication (MFA) was planned for implementation.'
+      matrix: '{"rows":[{"id":"F-001","section":"Identities","finding":"MFA","prior_state":"planned","current_state":"enforced","evidence_path":"exports/identities.csv","classification":"improved","update_required":true,"cis_ref":"CIS M365 1.1.3","nist_ref":"PR.AA-01"}]}'
+      section_map: '[{"heading":"Identities","order":1,"subsections":[]}]'
+      style_profile: '{"voice":"third-person formal","tense":"past","phrasing_conventions":["was planned"],"formatting_conventions":["## section headings"],"banned_patterns":["we","I"]}'
+      run_state: '{"punchouts":{"A_unable_to_validate":{"triggered":false},"C_regressions":{"triggered":false}}}'
+    assert:
+      - type: contains
+        value: '## Identities'
+      - type: not-contains
+        value: 'Regressed'
+      - type: llm-rubric
+        value: The draft preserves the Identities heading, updates the MFA status based on evidence, and avoids first-person or internal classification labels.
+
+  - description: E4 — Defer-marked items noted as unable to validate
+    vars:
+      matrix: '{"rows":[{"id":"F-001","section":"Email","finding":"DKIM","prior_state":"not configured","classification":"unable-to-validate","update_required":false,"cis_ref":"CIS M365 4.1.1","nist_ref":"PR.IP-01"}]}'
+      punchout_a: '| id | decision |\n| F-001 | defer |'
+      section_map: '[{"heading":"Email","order":1,"subsections":[]}]'
+      run_state: '{"punchouts":{"A_unable_to_validate":{"triggered":true,"approved":true},"C_regressions":{"triggered":false}}}'
+    assert:
+      - type: contains
+        value: unable to validate
+      - type: llm-rubric
+        value: The draft explicitly notes the DKIM item as unable to validate from current data and does not fabricate a current state.
+
+  - description: E5 — draft-map.json validates and draft.md cites evidence
+    vars:
+      matrix: '{"rows":[{"id":"F-001","section":"Identities","finding":"MFA","prior_state":"planned","current_state":"enforced","evidence_path":"exports/identities.csv","classification":"improved","update_required":true,"cis_ref":"CIS M365 1.1.3","nist_ref":"PR.AA-01"}]}'
+      section_map: '[{"heading":"Identities","order":1,"subsections":[]}]'
+      run_state: '{"punchouts":{"A_unable_to_validate":{"triggered":false},"C_regressions":{"triggered":false}}}'
+    assert:
+      - type: contains-json
+        value: |
+          {
+            "draft-map.json": {"sections": [{"heading": "Identities", "matrix_ids": ["F-001"]}]},
+            "draft.md": "exports/identities.csv"
+          }
+      - type: llm-rubric
+        value: The output contains a valid draft-map.json and a draft.md that references the evidence path.

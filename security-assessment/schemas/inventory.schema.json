@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "inventory.json — output of 01-ingest",
+  "type": "object",
+  "required": ["sources", "export_files", "section_map"],
+  "properties": {
+    "sources": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "object",
+        "required": ["path", "sha256", "role"],
+        "properties": {
+          "path": { "type": "string" },
+          "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+          "role": {
+            "type": "string",
+            "enum": ["prior-report", "history-report", "defender-export", "cis-ref", "nist-ref"]
+          }
+        }
+      }
+    },
+    "export_files": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "section_map": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["heading", "order"],
+        "properties": {
+          "heading": { "type": "string" },
+          "order": { "type": "integer" },
+          "subsections": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    }
+  }
+}

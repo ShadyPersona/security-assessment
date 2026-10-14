@@ -1,0 +1,94 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+description: 04-adversarial-review — validate G3 enforcement, claim verification, and rejection of fabrications.
+
+prompts:
+  - file://../SKILL.md
+
+providers:
+  - id: openai:chat:gpt-4
+  - id: anthropic:claude-3-sonnet-20240229
+
+defaultTest:
+  options:
+    provider: anthropic:claude-3-sonnet-20240229
+
+tests:
+  - description: E1 — G3 halts on orphan sections and unapproved structural changes
+    vars:
+      draft: '# Quarterly Security Assessment\n\n## New Section\nThis section has no matrix citation.'
+      draft_map: '{"sections":[{"heading":"New Section","matrix_ids":[]}]}'
+      prior_headings: '["Identities","Devices"]'
+      run_state: '{"punchouts":{"D_structure_changes":{"triggered":false},"B_framework_mappings":{"triggered":false}}}'
+    assert:
+      - type: contains
+        value: G3 hard fail
+      - type: llm-rubric
+        value: The agent detects orphan prose and stops with a G3 failure.
+
+  - description: E2 — Every claim is re-derived from evidence, not trusted from the draft
+    vars:
+      draft: '## Identities\nMFA is enforced for 100% of users.'
+      evidence: 'MFA enforcement: enabled for 97% of users.'
+      matrix: '{"rows":[{"id":"F-001","section":"Identities","finding":"MFA","evidence_path":"exports/identities.csv","classification":"improved"}]}'
+      draft_map: '{"sections":[{"heading":"Identities","matrix_ids":["F-001"]}]}'
+      prior_headings: '["Identities"]'
+      run_state: '{"punchouts":{"D_structure_changes":{"triggered":false},"B_framework_mappings":{"triggered":false}}}'
+    assert:
+      - type: contains-json
+        value: |
+          {
+            "review.json": {"claims": [{"verdict": "fixed", "evidence_path": "exports/identities.csv"}]}
+          }
+      - type: llm-rubric
+        value: The agent corrects the unsupported 100% claim based on the evidence, producing a fixed verdict with a fix_diff.
+
+  - description: E3 — Fabrications are flagged unresolved or rejected
+    vars:
+      draft: '## Devices\nThe organization has 5,000 enrolled devices, all compliant.'
+      evidence: 'Device enrollment: not available in this export.'
+      matrix: '{"rows":[{"id":"F-002","section":"Devices","finding":"Device compliance","evidence_path":"exports/devices.csv","classification":"unable-to-validate"}]}'
+      draft_map: '{"sections":[{"heading":"Devices","matrix_ids":["F-002"]}]}'
+      prior_headings: '["Devices"]'
+      run_state: '{"punchouts":{"D_structure_changes":{"triggered":false},"B_framework_mappings":{"triggered":false}}}'
+    assert:
+      - type: contains-json
+        value: |
+          {
+            "review.json": {"claims": [{"matrix_id": "F-002", "verdict": "unresolved"}]}
+          }
+      - type: llm-rubric
+        value: The agent flags the fabricated device count as unresolved or rejected because the evidence does not support it.
+
+  - description: E4 — Fixed verdicts require a fix_diff and produce reviewed.md
+    vars:
+      draft: '## Identities\nMFA was planned.'
+      evidence: 'MFA: enforced.'
+      matrix: '{"rows":[{"id":"F-001","section":"Identities","finding":"MFA","evidence_path":"exports/identities.csv","classification":"improved"}]}'
+      draft_map: '{"sections":[{"heading":"Identities","matrix_ids":["F-001"]}]}'
+      prior_headings: '["Identities"]'
+      run_state: '{"punchouts":{"D_structure_changes":{"triggered":false},"B_framework_mappings":{"triggered":false}}}'
+    assert:
+      - type: contains-json
+        value: |
+          {
+            "review.json": {"claims": [{"verdict": "fixed", "fix_diff": "MFA was planned -> MFA is enforced"}]}
+          }
+      - type: contains
+        value: reviewed.md
+      - type: llm-rubric
+        value: The agent emits a fixed verdict with a fix_diff and produces reviewed.md with the correction applied.
+
+  - description: E5 — Stale or changed CIS/NIST references trigger punch-out B
+    vars:
+      draft: '## Identities\nMFA maps to CIS M365 9.9.9.'
+      evidence: 'MFA control: CIS M365 1.1.3.'
+      matrix: '{"rows":[{"id":"F-001","section":"Identities","finding":"MFA","cis_ref":"CIS M365 1.1.3","nist_ref":"PR.AA-01","evidence_path":"exports/identities.csv","classification":"improved"}]}'
+      prior_cis: '["CIS M365 1.1.3"]'
+      draft_map: '{"sections":[{"heading":"Identities","matrix_ids":["F-001"]}]}'
+      prior_headings: '["Identities"]'
+      run_state: '{"punchouts":{"D_structure_changes":{"triggered":false},"B_framework_mappings":{"triggered":false}}}'
+    assert:
+      - type: contains
+        value: punchout-framework-mappings.md
+      - type: llm-rubric
+        value: The agent detects the changed CIS reference and raises punch-out B before proceeding.

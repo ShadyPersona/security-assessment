@@ -1,0 +1,73 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+description: 02-findings-matrix — validate G1 enforcement, evidence-linked classification, and punch-out behavior.
+
+prompts:
+  - file://../SKILL.md
+
+providers:
+  - id: openai:chat:gpt-4
+  - id: anthropic:claude-3-sonnet-20240229
+
+defaultTest:
+  options:
+    provider: anthropic:claude-3-sonnet-20240229
+
+tests:
+  - description: E1 — G1 passes only when all inputs are complete and mapped
+    vars:
+      inventory: '{"sources":[{"path":"prior.docx","sha256":"0000000000000000000000000000000000000000000000000000000000000001","role":"prior-report"},{"path":"hist.docx","sha256":"0000000000000000000000000000000000000000000000000000000000000002","role":"history-report"},{"path":"exports","sha256":"0000000000000000000000000000000000000000000000000000000000000003","role":"defender-export"},{"path":"cis.pdf","sha256":"0000000000000000000000000000000000000000000000000000000000000004","role":"cis-ref"},{"path":"nist.pdf","sha256":"0000000000000000000000000000000000000000000000000000000000000005","role":"nist-ref"}],"export_files":["secure-score.csv"],"section_map":[{"heading":"Identities","order":1,"subsections":[]}],"style_profile_present":true}'
+      evidence_index: '{"files":[{"path":"exports/secure-score.csv","sha256":"0000000000000000000000000000000000000000000000000000000000000006","domain":"secure-score","description":"Secure Score export"}]}'
+    assert:
+      - type: contains
+        value: matrix.json
+      - type: llm-rubric
+        value: The agent produces matrix.json because G1 passes.
+
+  - description: E2 — Every matrix row cites evidence or is marked unable-to-validate
+    vars:
+      prior_findings: '[{"section":"Identities","finding":"Legacy auth enabled","prior_state":"Legacy authentication was enabled for Exchange Online.","cis_ref":"CIS M365 1.1.3","nist_ref":"PR.AA-01"}]'
+      evidence_index: '{"files":[{"path":"exports/secure-score.csv","sha256":"abc","domain":"secure-score"}]}'
+    assert:
+      - type: contains-json
+        value: |
+          {
+            "matrix.json": {"rows": [{"id": "F-001", "section": "Identities", "classification": "unable-to-validate"}]}
+          }
+      - type: llm-rubric
+        value: Every row in matrix.json has an evidence_path, or its classification is unable-to-validate.
+
+  - description: E3 — No fabricated metrics, dates, or framework mappings
+    vars:
+      prior_findings: '[{"section":"Devices","finding":"MDM compliance 85%","prior_state":"MDM compliance was 85%.","cis_ref":"CIS M365 2.1.1","nist_ref":"PR.DS-01"}]'
+      evidence_index: '{"files":[{"path":"exports/device-compliance.csv","sha256":"abc","domain":"devices"}]}'
+      evidence_content: 'Compliance rate is not available in this export.'
+    assert:
+      - type: not-contains
+        value: '88%'
+      - type: llm-rubric
+        value: The agent does not invent a new compliance percentage or date; it either uses the evidence value or classifies the row as unable-to-validate.
+
+  - description: E4 — Regressed and unable-to-validate rows raise punch-outs
+    vars:
+      prior_findings: '[{"section":"Email","finding":"DKIM not configured","prior_state":"DKIM was not configured.","cis_ref":"CIS M365 4.1.1","nist_ref":"PR.IP-01"}]'
+      evidence_index: '{"files":[{"path":"exports/email-collab.csv","sha256":"abc","domain":"email-collab"}]}'
+      evidence_content: 'DKIM status: still not configured; additional unmonitored senders detected.'
+    assert:
+      - type: contains
+        value: punchout-unable-to-validate.md
+      - type: llm-rubric
+        value: The agent writes the appropriate punch-out file and stops, not approving the punch-out itself.
+
+  - description: E5 — matrix.json schema validates with required fields
+    vars:
+      prior_findings: '[{"section":"Identities","finding":"MFA enforced","prior_state":"MFA enforcement was planned.","cis_ref":"CIS M365 1.1.3","nist_ref":"PR.AA-01"}]'
+      evidence_index: '{"files":[{"path":"exports/identities.csv","sha256":"abc","domain":"identities"}]}'
+      evidence_content: 'MFA enforcement: enabled for all users.'
+    assert:
+      - type: contains-json
+        value: |
+          {
+            "matrix.json": {"rows": [{"id": "F-001", "section": "Identities", "finding": "MFA enforced", "classification": "improved", "update_required": true}]}
+          }
+      - type: llm-rubric
+        value: matrix.json validates against its schema; every row has all required fields and a valid F-XXX id.

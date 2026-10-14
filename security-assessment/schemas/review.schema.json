@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "review.json — output of 04-adversarial-review (validated by G4)",
+  "type": "object",
+  "required": ["claims"],
+  "properties": {
+    "claims": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["claim_id", "matrix_id", "verdict"],
+        "properties": {
+          "claim_id": { "type": "string", "pattern": "^C-[0-9]{3,}$" },
+          "matrix_id": { "type": "string", "pattern": "^F-[0-9]{3,}$" },
+          "verdict": {
+            "type": "string",
+            "enum": ["confirmed", "fixed", "unresolved", "rejected"]
+          },
+          "evidence_path": { "type": "string" },
+          "fix_diff": { "type": "string" },
+          "note": { "type": "string" }
+        },
+        "comment": "G4 rules: verdict must be confirmed|fixed to pass; fix_diff REQUIRED when verdict=fixed"
+      }
+    }
+  }
+}

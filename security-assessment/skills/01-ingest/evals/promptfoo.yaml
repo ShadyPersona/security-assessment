@@ -1,0 +1,87 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+description: 01-ingest — validate input ingestion, hashing, domain mapping, and style extraction.
+
+prompts:
+  - file://../SKILL.md
+
+providers:
+  - id: openai:chat:gpt-4
+  - id: anthropic:claude-3-sonnet-20240229
+
+defaultTest:
+  options:
+    provider: anthropic:claude-3-sonnet-20240229
+
+tests:
+  - description: E1 — All five inputs resolved and SHA-256 hashed
+    vars:
+      previous_report: runs/2026-Q3/inputs/prior-report.docx
+      history_report: runs/2026-Q3/inputs/history-report.docx
+      defender_export: runs/2026-Q3/inputs/defender-exports
+      cis_pdf: runs/2026-Q3/inputs/CIS_Microsoft_365_Foundations_Benchmark.pdf
+      nist_pdf: runs/2026-Q3/inputs/NIST.CSWP.29.pdf
+    assert:
+      - type: contains-json
+        value: |
+          {
+            "inventory.json": {"sources": [{"path": "runs/2026-Q3/inputs/prior-report.docx", "role": "prior-report"}]}
+          }
+      - type: llm-rubric
+        value: The output contains inventory.json with exactly five sources, each with a valid 64-character hex SHA-256 hash.
+
+  - description: E2 — Every Defender export file mapped to a security domain
+    vars:
+      defender_export: runs/2026-Q3/inputs/defender-exports
+    assert:
+      - type: contains-json
+        value: |
+          {
+            "evidence-index.json": {"files": [{"domain": "secure-score"}]}
+          }
+      - type: llm-rubric
+        value: Every file in the Defender export folder is assigned one of the allowed security domains with a SHA-256 hash.
+
+  - description: E3 — Style profile extracted with banned patterns and phrasing conventions
+    vars:
+      previous_report: runs/2026-Q3/inputs/prior-report.docx
+    assert:
+      - type: contains-json
+        value: |
+          {
+            "style-profile.json": {"voice": "third-person", "banned_patterns": ["I"]}
+          }
+      - type: llm-rubric
+        value: The style profile captures voice, tense, recurring phrasing conventions, formatting conventions, and a non-empty banned-patterns list derived from the prior report.
+
+  - description: E4 — Hard failure recorded when an input source is missing
+    vars:
+      previous_report: MISSING
+      history_report: runs/2026-Q3/inputs/history-report.docx
+      defender_export: runs/2026-Q3/inputs/defender-exports
+      cis_pdf: runs/2026-Q3/inputs/CIS_Microsoft_365_Foundations_Benchmark.pdf
+      nist_pdf: runs/2026-Q3/inputs/NIST.CSWP.29.pdf
+    assert:
+      - type: contains
+        value: G1 failure
+      - type: llm-rubric
+        value: The agent stops and records a G1 failure when any required input source is missing or unreadable.
+
+  - description: E5 — Output schemas validate and audit record is written
+    vars:
+      previous_report: runs/2026-Q3/inputs/prior-report.docx
+      history_report: runs/2026-Q3/inputs/history-report.docx
+      defender_export: runs/2026-Q3/inputs/defender-exports
+      cis_pdf: runs/2026-Q3/inputs/CIS_Microsoft_365_Foundations_Benchmark.pdf
+      nist_pdf: runs/2026-Q3/inputs/NIST.CSWP.29.pdf
+    assert:
+      - type: contains
+        value: inventory.json
+      - type: contains
+        value: evidence-index.json
+      - type: contains
+        value: style-profile.json
+      - type: contains
+        value: audit/run-
+
+# Scoring rubric: each eval criterion must pass at >=95% on mid-tier models.
+# The assertion mix ensures deterministic JSON checks plus semantic review.

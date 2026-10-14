@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "evidence-index.json — output of 01-ingest",
+  "type": "object",
+  "required": ["files"],
+  "properties": {
+    "files": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["path", "sha256", "domain"],
+        "properties": {
+          "path": { "type": "string" },
+          "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+          "domain": {
+            "type": "string",
+            "enum": ["secure-score", "identities", "devices", "email-collab",
+                     "endpoints", "vulnerabilities", "policies", "alerts", "other"]
+          },
+          "description": { "type": "string" }
+        }
+      }
+    }
+  }
+}
