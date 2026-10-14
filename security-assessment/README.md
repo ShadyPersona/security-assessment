@@ -25,7 +25,9 @@ Start here: [`WORKFLOW.md`](./WORKFLOW.md)
 security-assessment/
 ├── WORKFLOW.md          # pipeline definition, step contract, guardrails G1–G5, punch-outs
 ├── README.md            # this file
-├── skills/              # the six ordered sub-skills (see below)
+├── .github/
+│   ├── skills/          # the six ordered sub-skills (Copilot-discoverable, see below)
+│   └── security-assessment-orchestrator.agent.md  # end-to-end orchestrator agent
 ├── schemas/             # JSON Schemas every artifact must validate against
 ├── templates/           # run-state.json seed — copy into each new run dir
 ├── runs/                # one directory per quarterly run (see runs/README.md)
@@ -41,12 +43,12 @@ security-assessment/
 
 | # | Skill | Inbound gate |
 |---|-------|--------------|
-| 01 | `skills/01-ingest` | — (establishes ground truth) |
-| 02 | `skills/02-findings-matrix` | G1 input completeness |
-| 03 | `skills/03-draft-update` | G2 evidence citation + punch-outs A, C |
-| 04 | `skills/04-adversarial-review` | G3 structure/framework diff + punch-outs B, D |
-| 05 | `skills/05-tone-consistency` | G4 zero unresolved claims |
-| 06 | `skills/06-finalize` | G5 tone + fact preservation |
+| 01 | `.github/skills/01-ingest` | — (establishes ground truth) |
+| 02 | `.github/skills/02-findings-matrix` | G1 input completeness |
+| 03 | `.github/skills/03-draft-update` | G2 evidence citation + punch-outs A, C |
+| 04 | `.github/skills/04-adversarial-review` | G3 structure/framework diff + punch-outs B, D |
+| 05 | `.github/skills/05-tone-consistency` | G4 zero unresolved claims |
+| 06 | `.github/skills/06-finalize` | G5 tone + fact preservation |
 
 4. When a punch-out file is generated, the workflow halts. Record the human
    decision in the file under `audit/`, mark it APPROVED, update
