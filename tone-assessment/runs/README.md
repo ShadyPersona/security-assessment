@@ -5,21 +5,20 @@ All working artifacts live inside the run directory — never in the repo root.
 
 ```
 runs/2026-Q4/
-├── inputs/               # copies of the source documents for this run
-│   ├── prior-report.*    # previous quarter's report (style + format baseline)
-│   ├── reviewed.md       # output of the upstream review step (input to step 05)
-│   ├── review.json       # claim verdicts from upstream adversarial review
-│   ├── draft-map.json    # section → matrix-row mapping from upstream drafting
-│   └── style-profile.json# voice/tense/conventions extracted from prior report
+├── inputs/
+│   ├── draft.md              # the ONE document being toned (input to step 05)
+│   ├── template.*            # AUTHORITATIVE structure/formatting reference
+│   ├── report-prev-quarter.* # prior report — voice/tense/phrasing evidence
+│   └── report-2-quarters-ago.* # older report — style-trend evidence
 ├── toned.md              # step 05 output
-├── tone-changes.json     # step 05 output
+├── tone-changes.json     # step 05 output → ../schemas/tone-changes.schema.json
 ├── audit-report.md       # step 06 output (run summary)
 ├── run-state.json        # copied from templates/, updated each step
-└── final-report.<ext>    # step 06 output (client deliverable)
+└── final-report.<ext>    # step 06 output (client deliverable, template format)
 ```
 
-Every JSON artifact must validate against the corresponding file in
-`../schemas/` — guardrails check this at each handoff.
+`tone-changes.json` must validate against `../schemas/` — the guardrails
+check this at the G5 handoff.
 
 Cross-run evidence (punch-outs, guardrail results, success log, per-step
 audit records) lives in `../audit/`, which accumulates quarter over quarter.

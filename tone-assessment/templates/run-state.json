@@ -4,10 +4,7 @@
   "loop_counters": { "G4": 0, "G5": 0 },
   "loop_max": 2,
   "punchouts": {
-    "A_unable_to_validate": { "triggered": false, "file": "audit/punchout-unable-to-validate.md", "approved": false },
-    "B_framework_mappings": { "triggered": false, "file": "audit/punchout-framework-mappings.md", "approved": false },
-    "C_regressions": { "triggered": false, "file": "audit/punchout-regressions.md", "approved": false },
-    "D_structure_changes": { "triggered": false, "file": "audit/punchout-structure-changes.md", "approved": false },
+    "A_missing_content": { "triggered": false, "file": "audit/punchout-missing-content.md", "approved": false },
     "E_loop_exhaustion": { "triggered": false, "file": "audit/punchout-log.md", "approved": false }
   },
   "status": "in-progress"

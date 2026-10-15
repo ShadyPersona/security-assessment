@@ -1,5 +1,5 @@
 # yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
-description: 05-tone-consistency — validate G4 enforcement, style conformance, and fact preservation.
+description: 05-tone-consistency — validate G4 input gate, template-first style derivation, fact preservation, and edit logging.
 
 prompts:
   - file://../SKILL.md
@@ -13,49 +13,52 @@ defaultTest:
     provider: anthropic:claude-3-5-sonnet-20241022
 
 tests:
-  - description: E1 — Drafting blocked when G4 fails (unresolved claims)
+  - description: E1 — Toning blocked when G4 fails (missing input document)
     vars:
-      review: '{"claims":[{"claim_id":"C-001","matrix_id":"F-001","verdict":"unresolved"}]}'
-      draft_map: '{"sections":[{"heading":"Identities","matrix_ids":["F-001"]}]}'
+      draft: '## Identities\nMFA was enforced.'
+      template: ''  # missing/empty template
+      report_prev_quarter: '## Identities\nMFA was enforced for all users.'
+      report_2_quarters_ago: '## Identities\nMFA was deployed.'
       run_state: '{"loop_counters":{"G4":0}}'
     assert:
       - type: contains
         value: G4 failure
       - type: llm-rubric
-        value: The agent does not produce toned.md when review.json contains unresolved claims.
+        value: The agent halts and does not produce toned.md when any of the four required inputs is missing or unreadable.
 
-  - description: E2 — Tone deviations are corrected to match style-profile.json
+  - description: E2 — Template structure and formatting are applied to the draft
     vars:
-      review: '## Identities\nWe enforced MFA for all users.'
-      style_profile: '{"voice":"third-person formal","tense":"past","phrasing_conventions":["was enforced"],"formatting_conventions":["## section headings"],"banned_patterns":["we","I","our"]}'
-      review_state: '{"claims":[{"claim_id":"C-001","matrix_id":"F-001","verdict":"confirmed"}]}'
-      draft_map: '{"sections":[{"heading":"Identities","matrix_ids":["F-001"]}]}'
+      draft: 'Identities\nWe enforced MFA for all users.\nDevices\nDevice compliance was 97%.'
+      template: '## Executive Summary\n## Identities\n## Devices\n(sections use "## " headings, sentence-case titles, third-person past tense)'
+      report_prev_quarter: '## Identities\nMFA was enforced for all users.'
+      report_2_quarters_ago: '## Identities\nMFA was deployed.'
+      run_state: '{"loop_counters":{"G4":0}}'
     assert:
       - type: not-contains
         value: 'We '
       - type: contains
-        value: was enforced
+        value: '## Identities'
       - type: llm-rubric
-        value: The toned output removes first-person voice and adopts the third-person past-tense phrasing convention.
+        value: The toned output adopts the template's heading structure and formatting, and removes first-person voice per the prior reports' conventions.
 
-  - description: E3 — Internal classification labels are removed from report text
+  - description: E3 — Template wins over prior reports on conflict
     vars:
-      review: '## Identities\nThis finding has Regressed.'
-      style_profile: '{"voice":"third-person formal","tense":"past","phrasing_conventions":[],"formatting_conventions":[],"banned_patterns":["Regressed","Improved","Unable to validate"]}'
-      review_state: '{"claims":[{"claim_id":"C-001","matrix_id":"F-001","verdict":"confirmed"}]}'
-      draft_map: '{"sections":[{"heading":"Identities","matrix_ids":["F-001"]}]}'
+      draft: '## Identities\nMFA was enforced.'
+      template: '## Executive Summary\n## Identities\n## Devices\n(template orders Identities before Devices)'
+      report_prev_quarter: '## Devices\n...\n## Identities\n(prior report orders Devices first)'
+      report_2_quarters_ago: '## Devices\n...\n## Identities'
+      run_state: '{"loop_counters":{"G4":0}}'
     assert:
-      - type: not-contains
-        value: Regressed
       - type: llm-rubric
-        value: The toned output removes the internal classification label while preserving the underlying factual content.
+        value: The agent follows the template's section order rather than the prior reports', and records the conflict resolution in tone-changes.json.
 
   - description: E4 — Facts are preserved exactly (numbers, dates, CIS/NIST refs)
     vars:
-      reviewed: '## Devices\nAs of 2026-09-30, the device compliance rate was 97% (CIS M365 2.1.1, NIST PR.DS-01).'
-      style_profile: '{"voice":"third-person formal","tense":"past","phrasing_conventions":[],"formatting_conventions":[],"banned_patterns":[]}'
-      review_state: '{"claims":[{"claim_id":"C-001","matrix_id":"F-001","verdict":"confirmed"}]}'
-      draft_map: '{"sections":[{"heading":"Devices","matrix_ids":["F-001"]}]}'
+      draft: '## Devices\nAs of 2026-09-30, the device compliance rate was 97% (CIS M365 2.1.1, NIST PR.DS-01).'
+      template: '## Executive Summary\n## Devices'
+      report_prev_quarter: '## Devices\nDevice compliance was 95%.'
+      report_2_quarters_ago: '## Devices\nDevice compliance was 93%.'
+      run_state: '{"loop_counters":{"G4":0}}'
     assert:
       - type: contains
         value: '2026-09-30'
@@ -64,19 +67,33 @@ tests:
       - type: contains
         value: 'CIS M365 2.1.1'
       - type: llm-rubric
-        value: Every number, date, percentage, and framework reference from reviewed.md appears unchanged in toned.md.
+        value: Every number, date, percentage, and framework reference from draft.md appears unchanged in toned.md, even where prior reports show different values.
 
-  - description: E5 — Every edit recorded in tone-changes.json with a style_marker
+  - description: E5 — Missing template-required section triggers a punch-out, not fabrication
     vars:
-      reviewed: '## Identities\nWe enforced MFA.'
-      style_profile: '{"voice":"third-person formal","tense":"past","phrasing_conventions":["was enforced"],"formatting_conventions":[],"banned_patterns":["we","I"]}'
-      review_state: '{"claims":[{"claim_id":"C-001","matrix_id":"F-001","verdict":"confirmed"}]}'
-      draft_map: '{"sections":[{"heading":"Identities","matrix_ids":["F-001"]}]}'
+      draft: '## Identities\nMFA was enforced.'
+      template: '## Executive Summary\n## Identities\n## Remediation Plan\n(template requires a Remediation Plan section)'
+      report_prev_quarter: '## Identities\n...\n## Remediation Plan\n...'
+      report_2_quarters_ago: '## Identities\n...\n## Remediation Plan\n...'
+      run_state: '{"loop_counters":{"G4":0},"punchouts":{"A_missing_content":{"triggered":false,"approved":false}}}'
+    assert:
+      - type: contains
+        value: punchout
+      - type: llm-rubric
+        value: The agent halts and raises punchout-missing-content.md for a human decision rather than inventing content for the required Remediation Plan section.
+
+  - description: E6 — Every edit recorded in tone-changes.json with a style_marker
+    vars:
+      draft: '## Identities\nWe enforced MFA.'
+      template: '## Identities'
+      report_prev_quarter: '## Identities\nMFA was enforced for all users.'
+      report_2_quarters_ago: '## Identities\nMFA was deployed.'
+      run_state: '{"loop_counters":{"G4":0}}'
     assert:
       - type: contains-json
         value: |
           {
-            "tone-changes.json": {"changes": [{"style_marker": "banned_patterns"}]}
+            "tone-changes.json": {"changes": [{"style_marker": "voice"}]}
           }
       - type: llm-rubric
         value: tone-changes.json records at least one change and each entry has location, before, after, and a named style marker.

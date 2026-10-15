@@ -13,7 +13,10 @@
           "location": { "type": "string" },
           "before": { "type": "string" },
           "after": { "type": "string" },
-          "style_marker": { "type": "string" }
+          "style_marker": {
+            "type": "string",
+            "description": "the convention restored, e.g. template_structure, template_formatting, voice, tense, phrasing_conventions, banned_patterns, conflict_resolution"
+          }
         }
       }
     }

@@ -1,9 +1,9 @@
 # tone-assessment
 
-Self-contained two-step workflow that takes a reviewed security-assessment
-draft through tone normalization (`05-tone-consistency`) and final delivery
-(`06-finalize`). Extracted from the six-step quarterly assessment pipeline;
-**no dependencies outside this folder**.
+Self-contained two-step workflow that rewrites ONE report draft
+(`draft.md`) for tone/style — against a template (authoritative) and the two
+prior quarters' reports — then assembles the final deliverable.
+**No dependencies outside this folder.**
 
 ## Layout
 
@@ -20,22 +20,23 @@ tone-assessment/
 │       ├── SKILL.md           ← step agent prompt (enforces inbound G5)
 │       ├── ITERATION_LOG.md
 │       └── evals/promptfooconfig.yaml
-├── schemas/                   ← JSON Schemas making guardrails deterministic
-│   ├── review.schema.json         (G4 input gate)
-│   ├── draft-map.schema.json      (G4 coverage check)
-│   ├── style-profile.schema.json  (tone target, G5 tone check)
-│   └── tone-changes.schema.json   (step 05 output contract)
+├── schemas/
+│   └── tone-changes.schema.json   (step 05 output contract, checked at G5)
 ├── templates/run-state.json   ← loop counters + punch-out approval flags
-├── runs/README.md             ← per-run directory layout
+├── runs/README.md             ← per-run directory layout (4 inputs)
 └── audit/                     ← cross-run evidence (append-only)
     ├── guardrails.jsonl           (one record per guardrail check)
     ├── punchout-log.md            (halts, bypass tests, human decisions)
-    ├── punchout-unable-to-validate.md
-    ├── punchout-framework-mappings.md
-    ├── punchout-regressions.md
-    ├── punchout-structure-changes.md
+    ├── punchout-missing-content.md
     └── success-log.md             (end-to-end run results + success rate)
 ```
+
+## Inputs per run (place in `runs/<YYYY-QN>/inputs/`)
+
+1. `draft.md` — the document being toned (the only file modified)
+2. `template` — authoritative for structure/formatting; wins conflicts
+3. `report-prev-quarter` — voice/tense/phrasing evidence
+4. `report-2-quarters-ago` — style-trend evidence
 
 ## Stage 4 artifact map
 
@@ -50,7 +51,7 @@ tone-assessment/
 ## Running the workflow
 
 1. Create `runs/<YYYY-QN>/`, copy `templates/run-state.json` into it, and
-   place the inputs (see `WORKFLOW.md` §Inputs) in `runs/<YYYY-QN>/inputs/`.
+   place the four inputs in `runs/<YYYY-QN>/inputs/`.
 2. Invoke skill `05-tone-consistency` → produces `toned.md`,
    `tone-changes.json`, and the G4 record.
 3. Invoke skill `06-finalize` → runs G5, assembles the deliverable, and
