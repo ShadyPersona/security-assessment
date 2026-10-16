@@ -1,29 +1,39 @@
-# tone-assessment
+# tone-assessmentV2
 
-Self-contained two-step workflow that rewrites ONE report draft
-(`draft.md`) for tone/style — against a template (authoritative) and the two
-prior quarters' reports — then assembles the final deliverable.
+Self-contained two-step workflow that performs **security-assessment
+synthesis** on ONE report draft (`draft.md`) — converting telemetry and
+control data into conclusion-led quarter-over-quarter analysis — under a
+strict substance freeze, then assembles the final deliverable.
 **No dependencies outside this folder.**
+
+V2 differs from `tone-assessment/`: the agent is a security-assessment
+synthesizer applying professional analytical + writing standards directly —
+no prior-quarter reports are required as inputs, and success is measured by
+assessment quality (conclusion-led analysis, quarterly thesis, cross-signal
+synthesis), not polished language alone.
 
 ## Layout
 
 ```
-tone-assessment/
+tone-assessmentV2/
 ├── README.md                  ← this file (guide to the artifacts)
 ├── WORKFLOW.md                ← workflow definition (pipeline, guardrails, punch-outs, success metric)
 ├── .github/skills/
 │   ├── 05-tone-consistency/
-│   │   ├── SKILL.md           ← step agent prompt (enforces inbound G4)
+│   │   ├── SKILL.md           ← step 05 agent prompt (enforces inbound G4)
 │   │   ├── ITERATION_LOG.md   ← eval-driven prompt evolution (EDD evidence)
 │   │   └── evals/promptfooconfig.yaml
-│   └── 06-finalize/
-│       ├── SKILL.md           ← step agent prompt (enforces inbound G5)
-│       ├── ITERATION_LOG.md
-│       └── evals/promptfooconfig.yaml
+│   ├── 06-finalize/
+│   │   ├── SKILL.md           ← step 06 agent prompt (enforces inbound G5)
+│   │   ├── ITERATION_LOG.md
+│   │   └── evals/promptfooconfig.yaml
+│   └── tone-assessmentv2-orchestrator/
+│       └── SKILL.md           ← single-file orchestrator for agent use (combines 05 + 06 + workflow)
+├── tone-assessmentV2-orchestrator.agent.md  ← root copy of the orchestrator
 ├── schemas/
 │   └── tone-changes.schema.json   (step 05 output contract, checked at G5)
 ├── templates/run-state.json   ← loop counters + punch-out approval flags
-├── runs/README.md             ← per-run directory layout (4 inputs)
+├── runs/README.md             ← per-run directory layout (2 inputs)
 └── audit/                     ← cross-run evidence (append-only)
     ├── guardrails.jsonl           (one record per guardrail check)
     ├── punchout-log.md            (halts, bypass tests, human decisions)
@@ -33,10 +43,8 @@ tone-assessment/
 
 ## Inputs per run (place in `runs/<YYYY-QN>/inputs/`)
 
-1. `draft.md` — the document being toned (the only file modified)
+1. `draft.md` — the document being edited (the only file modified)
 2. `template` — authoritative for structure/formatting; wins conflicts
-3. `report-prev-quarter` — voice/tense/phrasing evidence
-4. `report-2-quarters-ago` — style-trend evidence
 
 ## Stage 4 artifact map
 
@@ -51,7 +59,7 @@ tone-assessment/
 ## Running the workflow
 
 1. Create `runs/<YYYY-QN>/`, copy `templates/run-state.json` into it, and
-   place the four inputs in `runs/<YYYY-QN>/inputs/`.
+   place the two inputs in `runs/<YYYY-QN>/inputs/`.
 2. Invoke skill `05-tone-consistency` → produces `toned.md`,
    `tone-changes.json`, and the G4 record.
 3. Invoke skill `06-finalize` → runs G5, assembles the deliverable, and

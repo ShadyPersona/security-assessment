@@ -1,16 +1,18 @@
-# Workflow Definition — Tone & Finalize Pipeline
+# Workflow Definition — Tone & Finalize Pipeline (V2)
 
-A two-step sequential workflow that takes ONE report draft through tone
-normalization (against a template and two prior quarters' reports) and final
-delivery, with one fail-closed deterministic guardrail on every handoff,
-human punch-out gates, and a structured audit trail. Fully self-contained in
-this folder — no paths, files, or skills outside `tone-assessment/` are
-referenced.
+A two-step sequential workflow that takes ONE report draft through
+security-assessment synthesis — converting telemetry and control data into
+conclusion-led quarter-over-quarter analysis under a strict substance
+freeze (professional writing standards + an authoritative template) — and
+final delivery, with
+one fail-closed deterministic guardrail on every handoff, human punch-out
+gates, and a structured audit trail. Fully self-contained in this folder —
+no paths, files, or skills outside `tone-assessmentV2/` are referenced.
 
 ## Pipeline
 
 ```
-[inputs: draft.md + template + 2 prior reports]
+[inputs: draft.md + template]
         │
         ▼  G4 (input-completeness gate)
 05-tone-consistency ──G5──▶ 06-finalize → [deliverable]
@@ -21,15 +23,13 @@ referenced.
 ## Inputs
 
 All inputs are placed in `runs/<YYYY-QN>/inputs/` before the run starts.
-Exactly ONE document is modified; the three references are read-only.
+Exactly ONE document is modified; the template is read-only.
 
 | # | Source | Role |
 |---|--------|------|
-| 1 | `draft.md` | The document being toned — the only file rewritten |
+| 1 | `draft.md` | The document being edited — the only file rewritten |
 | 2 | `template` | AUTHORITATIVE for section order, headings, formatting, required elements; wins every conflict |
-| 3 | `report-prev-quarter` | Voice, tense, phrasing-convention evidence |
-| 4 | `report-2-quarters-ago` | Style-consistency trend evidence |
-| 5 | `run-state.json` | Copied from `templates/` at run start; loop counters + punch-out flags |
+| 3 | `run-state.json` | Copied from `templates/` at run start; loop counters + punch-out flags |
 
 ## Step Contract
 
@@ -49,8 +49,8 @@ workflow.
 
 | Step | Skill | Consumes | Produces |
 |------|-------|----------|----------|
-| 05 | tone-consistency | `draft.md`, `template`, both prior reports | `toned.md`, `tone-changes.json` |
-| 06 | finalize | `toned.md`, `draft.md`, `template`, both prior reports, `run-state.json`, audit artifacts | Final report, `audit-report.md` |
+| 05 | tone-consistency | `draft.md`, `template` | `toned.md`, `tone-changes.json` |
+| 06 | finalize | `toned.md`, `draft.md`, `template`, `tone-changes.json`, `run-state.json`, audit artifacts | Final report, `audit-report.md` |
 
 ## Guardrails
 
@@ -59,21 +59,41 @@ deterministic checks run before the next agent is allowed to proceed, not
 review performed inside a step. All are automated.
 
 ### G4 — inputs → tone (Input-Completeness Gate, enforced by step 05)
-- All four input files exist and are readable; SHA-256 recorded per file.
+- Both input files exist and are readable; SHA-256 recorded per file.
 - `run-state.json` present; template yields an extractable section/heading
   structure.
 - Missing/unreadable input = hard fail, no `toned.md` produced.
 - Failure → increment `loop_counters.G4`; at `loop_max` (2) escalate to
   human via punch-out E in `audit/punchout-log.md`.
 
-### G5 — tone → finalize (Tone, Fact-Preservation & Accountability Gate, enforced by step 06)
-- Tone check: `toned.md` conforms to the template (required sections
-  present/ordered, headings, formatting) and prior-report conventions
-  (voice, tense, phrasing; banned patterns absent).
-- Fact-preservation diff: every number, date, percentage, CIS/NIST
-  reference, and finding title in `toned.md` must exist in `draft.md`.
+### G5 — tone → finalize (Assessment Quality, Substance Freeze & Accountability Gate, enforced by step 06)
+- Assessment-quality check — did the rewrite produce real analysis:
+  `toned.md` conforms to the template AND every substantive section is
+  conclusion-first assessment (condition, quarter movement, evidence,
+  significance, qualification, recommended response, calibration); domains with
+  comparable evidence carry an explicit quarter-over-quarter thesis
+  (preceding vs current condition, material movement, attribution,
+  carried-in unresolved and newly material findings — post-quarter
+  evidence never presented as reporting-quarter progress); related
+  controls are synthesized into assessment themes before individual
+  controls are discussed; professional editorial standards met (voice,
+  tense, terminology, cadence, hedging, banned patterns absent, spelling/
+  grammar/punctuation correct, inclusive and neutral language, no
+  sensitive geopolitical references); significance is tied to the
+  client's business risk; movement claims are temporally anchored;
+  positive findings are calibrated with their limitations; no noun stacks
+  or product-vendor grammar remain. A
+  data-first, unchanged, or merely word-patched draft fails even with
+  zero banned patterns present.
+- Substance freeze check: every number, date, percentage, measurement,
+  finding title, CIS/NIST reference, classification outcome, piece of
+  evidence, and recommendation in `toned.md` must exist in `draft.md`
+  unchanged; re-written/re-scoped evidence, invented facts in narrative
+  framing, or meaning-shifting paraphrase fails.
 - Change accountability: every draft→toned edit recorded in
-  `tone-changes.json` (schema-validated). Unrecorded edit = failure.
+  `tone-changes.json` (schema-validated) with `reason`,
+  `assessment_function`, and `facts_changed: false`. A change log with
+  no analytical `assessment_function` coverage fails.
 - Punch-out closure: every `triggered: true` punch-out must be
   `approved: true`. Unapproved = hard fail — STOP for human sign-off.
 - Failure → loop back to step 05 (max 2 iterations → human escalation).
@@ -113,7 +133,8 @@ per-step model/token/cost coverage across the whole pipeline.
 ## End-to-End Success Metric
 
 A run succeeds iff:
-1. G5 passes (tone, fact diff, change accountability, punch-out closure),
+1. G5 passes (assessment quality, substance freeze, change accountability,
+   punch-out closure),
 2. every triggered punch-out is resolved with a recorded human decision, and
 3. the final report is emitted.
 

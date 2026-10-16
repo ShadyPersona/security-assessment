@@ -6,10 +6,8 @@ All working artifacts live inside the run directory — never in the repo root.
 ```
 runs/2026-Q4/
 ├── inputs/
-│   ├── draft.md              # the ONE document being toned (input to step 05)
-│   ├── template.*            # AUTHORITATIVE structure/formatting reference
-│   ├── report-prev-quarter.* # prior report — voice/tense/phrasing evidence
-│   └── report-2-quarters-ago.* # older report — style-trend evidence
+│   ├── draft.md              # the ONE document being edited (input to step 05)
+│   └── template.*            # AUTHORITATIVE structure/formatting reference
 ├── toned.md              # step 05 output
 ├── tone-changes.json     # step 05 output → ../schemas/tone-changes.schema.json
 ├── audit-report.md       # step 06 output (run summary)

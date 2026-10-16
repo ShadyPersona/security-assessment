@@ -1,0 +1,89 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+description: 05-tone-consistency (V2) — validate G4 input gate, assessment synthesis, substance freeze, and edit logging.
+
+prompts:
+  - file://../SKILL.md
+
+providers:
+  - id: openai:chat:gpt-4
+  - id: anthropic:claude-3-5-sonnet-20241022
+
+defaultTest:
+  options:
+    provider: anthropic:claude-3-5-sonnet-20241022
+
+tests:
+  - description: E1 — Editing blocked when G4 fails (missing input document)
+    vars:
+      draft: '## Identities\nMFA was enforced.'
+      template: ''  # missing/empty template
+      run_state: '{"loop_counters":{"G4":0}}'
+    assert:
+      - type: contains
+        value: G4 failure
+      - type: llm-rubric
+        value: The agent halts and does not produce toned.md when any required input is missing or unreadable.
+
+  - description: E2 — Professional editorial rewrite is applied to the draft
+    vars:
+      draft: 'Identities\nWe turned on MFA for all users. It is good.'
+      template: '## Executive Summary\n## Identities\n## Devices\n(sections use "## " headings, sentence-case titles)'
+      run_state: '{"loop_counters":{"G4":0}}'
+    assert:
+      - type: not-contains
+        value: 'We '
+      - type: not-contains
+        value: 'It is good'
+      - type: contains
+        value: '## Identities'
+      - type: llm-rubric
+        value: The output is substantively rewritten in a professional third-person formal voice with precise terminology (e.g., multi-factor authentication was enforced), adopts the template heading structure, and removes colloquial filler.
+
+  - description: E3 — Findings follow condition → evidence → implication; recommendations follow action → rationale
+    vars:
+      draft: '## Devices\nDevice compliance was 97%.'
+      template: '## Devices'
+      run_state: '{"loop_counters":{"G4":0}}'
+    assert:
+      - type: llm-rubric
+        value: The output states the observed condition and frames it in professional assessment language without inventing evidence or implications not present in the draft.
+
+  - description: E4 — Facts are preserved exactly (numbers, dates, CIS/NIST refs, recommendations)
+    vars:
+      draft: '## Devices\nAs of 2026-09-30, the device compliance rate was 97% (CIS M365 2.1.1, NIST PR.DS-01). Recommended: enforce compliance policies for unmanaged devices.'
+      template: '## Devices'
+      run_state: '{"loop_counters":{"G4":0}}'
+    assert:
+      - type: contains
+        value: '2026-09-30'
+      - type: contains
+        value: '97%'
+      - type: contains
+        value: 'CIS M365 2.1.1'
+      - type: llm-rubric
+        value: Every number, date, percentage, framework reference, and the recommendation's meaning from draft.md appears unchanged in toned.md.
+
+  - description: E5 — Missing template-required section triggers a punch-out, not fabrication
+    vars:
+      draft: '## Identities\nMFA was enforced.'
+      template: '## Executive Summary\n## Identities\n## Remediation Plan\n(template requires a Remediation Plan section)'
+      run_state: '{"loop_counters":{"G4":0},"punchouts":{"A_missing_content":{"triggered":false,"approved":false}}}'
+    assert:
+      - type: contains
+        value: punchout
+      - type: llm-rubric
+        value: The agent halts and raises punchout-missing-content.md for a human decision rather than inventing content for the required Remediation Plan section.
+
+  - description: E6 — Every edit recorded in tone-changes.json with a style_marker
+    vars:
+      draft: '## Identities\nWe enforced MFA.'
+      template: '## Identities'
+      run_state: '{"loop_counters":{"G4":0}}'
+    assert:
+      - type: contains-json
+        value: |
+          {
+            "tone-changes.json": {"changes": [{"style_marker": "voice", "facts_changed": false}]}
+          }
+      - type: llm-rubric
+        value: tone-changes.json records at least one change and each entry has location, before, after, style_marker, reason, assessment_function, and facts_changed set to false.
