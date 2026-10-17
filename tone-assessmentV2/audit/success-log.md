@@ -1,11 +1,10 @@
-# End-to-End Success Log
+# Success Log
 
-One row per workflow run. A run succeeds iff G5 passed, every triggered
-punch-out was resolved with a recorded human decision, and the final report
-was emitted.
+End-to-end run results for tone-assessmentV2. One line per run, append-only.
+Success rate = successful runs / total runs tracked in this file.
 
-| date | run id | result (success/fail) | punch-outs triggered | loop iterations (G4/G5) | notes |
-|------|--------|-----------------------|----------------------|-------------------------|-------|
-| | | | | | |
+> The first data row below is an **EXAMPLE / TEMPLATE** showing the expected format. Replace it with real run entries produced by executing the workflow. Stage 4 certification requires actual run data, not placeholders.
 
-**End-to-end success rate:** _ / _ runs (update after each run)
+| date | run id | result | punch-outs | iterations | notes |
+|------|--------|--------|------------|------------|-------|
+| 2026-10-21 | EXAMPLE-2026-Q3-Bethany | pass | none | 1 | Example/template row — G4 and G5 passed, final deliverable emitted. Replace with real run data. |

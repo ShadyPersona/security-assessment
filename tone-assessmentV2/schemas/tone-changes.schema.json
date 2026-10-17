@@ -15,7 +15,7 @@
           "after": { "type": "string" },
           "style_marker": {
             "type": "string",
-            "description": "the convention applied, e.g. template_structure, template_formatting, narrative, voice, tense, cadence, terminology, hedging, explanatory_style, banned_patterns, client_significance, temporal_precision, significance_calibration, plain_voice, spelling, grammar, punctuation, inclusive_language, neutral_perspective, geopolitical_sensitivity"
+            "description": "the convention applied, e.g. template_structure, template_formatting, narrative, voice, tense, cadence, terminology, hedging, explanatory_style, banned_patterns, client_significance, temporal_precision, significance_calibration, plain_voice, spelling, grammar, punctuation, inclusive_language, neutral_perspective, geopolitical_sensitivity, sentence_discipline, complete_sentences, scope_clarity, evidence_integration, active_framing, actionable_recommendations, assessment_first, consultant_voice, plain_language, qualification_discipline, narrative_evidence_balance, client_usefulness"
           },
           "reason": {
             "type": "string",

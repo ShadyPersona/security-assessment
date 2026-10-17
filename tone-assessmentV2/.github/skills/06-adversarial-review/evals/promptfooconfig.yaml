@@ -1,5 +1,5 @@
 # yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
-description: 06-finalize (V2) — validate G5 enforcement (assessment quality, substance freeze, change accountability), punch-out closure, audit report, and success logging.
+description: 06-adversarial-review (V2) — validate G5 adversarial review enforcement (assessment quality, substance freeze, change accountability), punch-out closure, deliverable assembly, audit report, and success logging.
 
 prompts:
   - file://../SKILL.md
@@ -89,3 +89,15 @@ tests:
         value: success-log.md
       - type: llm-rubric
         value: On a successful G5 pass with no unapproved punch-outs, the agent emits the final deliverable, writes audit-report.md, and appends to success-log.md.
+
+  - description: E7 — G5 failure prevents final deliverable assembly
+    vars:
+      toned: '## Identities\nWe turned on MFA. It is good.'
+      draft: '## Identities\nMFA was enabled for all users.'
+      template: '## Identities'
+      run_state: '{"punchouts":{"A_missing_content":{"triggered":false},"E_loop_exhaustion":{"triggered":false}},"loop_counters":{"G5":0}}'
+    assert:
+      - type: contains
+        value: G5 failure
+      - type: llm-rubric
+        value: The agent records a G5 failure and initiates the loop-back to step 05 without assembling a final deliverable or writing audit-report.md as if the run had succeeded.

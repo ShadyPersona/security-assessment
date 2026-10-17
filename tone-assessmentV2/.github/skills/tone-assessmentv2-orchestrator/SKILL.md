@@ -8,7 +8,7 @@ description: Authoritative instructions for running the tone-assessmentV2 workfl
 You are running a two-step security-assessment synthesis workflow. This file
 is the authoritative definition. If companion files exist
 (`WORKFLOW.md`, `.github/skills/05-tone-consistency/SKILL.md`,
-`.github/skills/06-finalize/SKILL.md`, `schemas/tone-changes.schema.json`,
+`.github/skills/06-adversarial-review/SKILL.md`, `schemas/tone-changes.schema.json`,
 `templates/run-state.json`), read them for confirmation — but if any file is
 unreadable or ambiguous, THIS document governs. Never approximate or
 substitute a file whose identity you cannot confirm; state the problem and
@@ -70,21 +70,43 @@ and template before proceeding.
    exposure/vulnerability management; logging/detection/response
    readiness. Explain relationships before individual controls; preserve
    control values as evidence.
-4. **Professional standards.** Third-person formal consultative voice;
-   consistent tense; verbose explanatory prose (no bare metrics where the
-   draft provides context); declarative cadence; precise security
-   terminology; hedged/evidence-attributed claims; findings as
-   condition → evidence → implication; recommendations as
-   action → rationale; banned: first-person, contractions, colloquialisms,
-   filler, marketing language, unqualified superlatives. The document must
-   read as one coherent quarter-over-quarter narrative — transitions and
+4. **Professional and client-consultative standards.** Third-person formal
+   consultative voice; consistent tense; concise explanatory prose (expand
+   only where the draft under-explains); declarative cadence; precise
+   security terminology; claims are stated directly when supported and
+   hedged only when uncertainty changes the conclusion; findings as
+   condition → evidence → implication; recommendations as action →
+   rationale; banned: first-person, contractions, colloquialisms, filler,
+   marketing language, unqualified superlatives. The document must read as
+   one coherent quarter-over-quarter narrative — transitions and
    cross-section context built ONLY from facts in the draft. Break up
    Microsoft-style noun stacks and product-vendor grammar; write normal
    English sentences with clear subjects and verbs (e.g., "positive
    reported completed controls" becomes "Windows antivirus and EDR is in
    Block mode"). Correct spelling, grammar, and punctuation; use
    inclusive and neutral language; avoid sensitive geopolitical references
-   or contentious framing.
+   or contentious framing. Every sentence has a clear subject and verb and
+   states one idea; semicolons connect only closely related clauses;
+   evidence gaps are integrated as supporting context, not left as raw
+   fragments; scope is stated in plain language; every substantive finding
+   or risk is paired with a concrete client action.
+   **Client-consultative writing standard:** this is a consultant's
+   security assessment written for a client stakeholder. Lead with the
+   supported security conclusion, then the evidence, then why it matters,
+   then the practical next step. Do not lead with methodology, scoring
+   mechanics, evidence limitations, or framework mappings unless they
+   materially determine the conclusion. Sound direct, calm, practical, and
+   professionally opinionated where the evidence supports a judgment.
+   Interpret technical findings rather than restating them; Microsoft
+   recommendations, Secure Score, CIS, and NIST are supporting inputs, not
+   the narrative voice. Tables may carry detailed control evidence and
+   framework mappings; prose explains posture, significance, priorities,
+   and next steps without duplicating table contents. Every substantive
+   domain should leave the reader knowing: (1) the consultant's assessment,
+   (2) what meaningfully changed, if anything, (3) why it matters, and (4)
+   what to focus on next. Plain language must never become unsupported
+   certainty — preserve the draft's factual boundary and all material
+   distinctions.
 5. **Missing content = punch-out, never fabrication.** If the template
    requires a section `draft.md` has no content for, write
    `punchout-missing-content.md`, halt, and ask the human to decide:
@@ -104,7 +126,7 @@ and template before proceeding.
    `historical_context`, `template_structure`, `professional_tone`), and
    `facts_changed` (must be `false` — `true` is a hard fail).
 
-## Step 06 — Finalize (run only after 05 completes)
+## Step 06 — Adversarial Review & Finalize (run only after 05 completes)
 
 **G5 — four checks, all must pass:**
 
@@ -120,8 +142,15 @@ and template before proceeding.
    are calibrated with their limitations and risks with their known/unknown
    scope; no noun stacks or product-vendor grammar remain; spelling,
    grammar, and punctuation are correct; language is inclusive and neutral;
-   no sensitive geopolitical references. A data-first, unchanged, or
-   word-patched `toned.md` fails even with zero banned patterns.
+   no sensitive geopolitical references; every sentence has a clear
+   subject and verb and states one idea; semicolons connect only closely
+   related clauses; evidence gaps are integrated as supporting context;
+   scope is stated in plain language; every substantive finding or risk is
+   paired with a concrete client action; the document reads as consultant
+   guidance rather than audit/Secure Score commentary; technical findings
+   are interpreted for the client; concise consultative prose without
+   defensive caveat-stacking. A data-first, unchanged, or word-patched
+   `toned.md` fails even with zero banned patterns.
 2. **Substance freeze:** every factual token in `toned.md` exists in
    `draft.md` unchanged; no re-written/re-scoped evidence; no invented
    facts in narrative framing; no meaning-shifting paraphrase.
@@ -132,8 +161,7 @@ and template before proceeding.
    `professional_tone` fails — it means no real rewrite happened).
 4. **Punch-out closure:** no unresolved `punchout-missing-content.md`.
 
-**On any G5 failure:** state `G5 failure` and the specific check, loop
-back to Step 05 once, and re-run. If G5 fails twice, escalate to the human.
+**On any G5 failure:** state `G5 failure` and the specific check. Before looping back or escalating, append a failure record to `audit/success-log.md` and a final step record to `audit/run-YYYYMMDD.jsonl` with `guardrail_inbound: {"id": "G5", "result": "fail"}` and `finalized: false`. Then loop back to Step 05 once. If G5 fails twice, escalate to the human.
 
 **On G5 pass:**
 - Assemble `toned.md` into the final deliverable using the template's
@@ -145,11 +173,13 @@ back to Step 05 once, and re-run. If G5 fails twice, escalate to the human.
 - Append step records to `run-YYYYMMDD.jsonl` with model, input/output
   hashes, tokens, cost, and `guardrail_inbound` result.
 
+**Logging is mandatory.** A run is not complete until both `audit/success-log.md` and `audit/run-YYYYMMDD.jsonl` have been updated. If the logging step is missed, fail the run and report which log is missing.
+
 ## Reporting contract
 
 1. Before editing, list every workflow file you opened and its role —
    including whether you used this orchestrator or the SKILL.md files.
-2. Show each G4/G5 check result explicitly.
+2. Show each G4/G5 check result explicitly. Before finalizing, report the G5 adversarial review result and which specific check passed or failed.
 3. Output `tone-changes.json` in full.
 4. If a punch-out triggers, stop and show its content for human decision.
 5. In the final output, explain the workflow used and what each guardrail

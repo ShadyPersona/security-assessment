@@ -1,4 +1,4 @@
-# Workflow Definition — Tone & Finalize Pipeline (V2)
+# Workflow Definition — Assessment Synthesis & Finalize Pipeline (V2)
 
 A two-step sequential workflow that takes ONE report draft through
 security-assessment synthesis — converting telemetry and control data into
@@ -15,9 +15,9 @@ no paths, files, or skills outside `tone-assessmentV2/` are referenced.
 [inputs: draft.md + template]
         │
         ▼  G4 (input-completeness gate)
-05-tone-consistency ──G5──▶ 06-finalize → [deliverable]
-        │                        │
-        └── missing-content ─────┴── punch-out → human sign-off → resume
+05-tone-consistency ──G5──▶ 06-adversarial-review → [deliverable]
+        │                            │
+        └── missing-content ─────────┴── punch-out → human sign-off → resume
 ```
 
 ## Inputs
@@ -50,7 +50,7 @@ workflow.
 | Step | Skill | Consumes | Produces |
 |------|-------|----------|----------|
 | 05 | tone-consistency | `draft.md`, `template` | `toned.md`, `tone-changes.json` |
-| 06 | finalize | `toned.md`, `draft.md`, `template`, `tone-changes.json`, `run-state.json`, audit artifacts | Final report, `audit-report.md` |
+| 06 | adversarial-review | `toned.md`, `draft.md`, `template`, `tone-changes.json`, `run-state.json`, audit artifacts | Final report, `audit-report.md` |
 
 ## Guardrails
 
@@ -66,7 +66,7 @@ review performed inside a step. All are automated.
 - Failure → increment `loop_counters.G4`; at `loop_max` (2) escalate to
   human via punch-out E in `audit/punchout-log.md`.
 
-### G5 — tone → finalize (Assessment Quality, Substance Freeze & Accountability Gate, enforced by step 06)
+### G5 — tone → adversarial-review (Adversarial Review Gate: Assessment Quality, Substance Freeze & Accountability, enforced by step 06)
 - Assessment-quality check — did the rewrite produce real analysis:
   `toned.md` conforms to the template AND every substantive section is
   conclusion-first assessment (condition, quarter movement, evidence,
@@ -76,15 +76,24 @@ review performed inside a step. All are automated.
   carried-in unresolved and newly material findings — post-quarter
   evidence never presented as reporting-quarter progress); related
   controls are synthesized into assessment themes before individual
-  controls are discussed; professional editorial standards met (voice,
-  tense, terminology, cadence, hedging, banned patterns absent, spelling/
-  grammar/punctuation correct, inclusive and neutral language, no
-  sensitive geopolitical references); significance is tied to the
-  client's business risk; movement claims are temporally anchored;
-  positive findings are calibrated with their limitations; no noun stacks
-  or product-vendor grammar remain. A
-  data-first, unchanged, or merely word-patched draft fails even with
-  zero banned patterns present.
+  controls are discussed; professional and client-consultative standards
+  met (voice, tense, terminology, cadence, hedging, banned patterns
+  absent, spelling/grammar/punctuation correct, inclusive and neutral
+  language, no sensitive geopolitical references); every sentence has a
+  clear subject and verb and states one idea; semicolons connect only
+  closely related clauses; evidence gaps are integrated as supporting
+  context, not left as raw fragments; scope is stated in plain language;
+  every substantive finding or risk is paired with a concrete client
+  action; sections lead with supported conclusions rather than
+  methodology or evidence limitations; technical findings are interpreted
+  for the client rather than restated; concise consultative prose without
+  defensive caveat-stacking; every substantive domain answers what was
+  assessed, what changed, why it matters, and what's next; significance is
+  tied to the client's business risk; movement claims are temporally
+  anchored; positive findings are calibrated with their limitations; no
+  noun stacks or product-vendor grammar remain. A data-first, unchanged,
+  or merely word-patched draft fails even with zero banned patterns
+  present.
 - Substance freeze check: every number, date, percentage, measurement,
   finding title, CIS/NIST reference, classification outcome, piece of
   evidence, and recommendation in `toned.md` must exist in `draft.md`
@@ -96,6 +105,7 @@ review performed inside a step. All are automated.
   no analytical `assessment_function` coverage fails.
 - Punch-out closure: every `triggered: true` punch-out must be
   `approved: true`. Unapproved = hard fail — STOP for human sign-off.
+- Step 06 acts as the adversarial reviewer of step 05 and only assembles the final deliverable after G5 passes.
 - Failure → loop back to step 05 (max 2 iterations → human escalation).
 
 ## Punch-Out Points

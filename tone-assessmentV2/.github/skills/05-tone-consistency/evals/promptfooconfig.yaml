@@ -24,7 +24,7 @@ tests:
       - type: llm-rubric
         value: The agent halts and does not produce toned.md when any required input is missing or unreadable.
 
-  - description: E2 — Professional editorial rewrite is applied to the draft
+  - description: E2 — Professional assessment synthesis is applied to the draft
     vars:
       draft: 'Identities\nWe turned on MFA for all users. It is good.'
       template: '## Executive Summary\n## Identities\n## Devices\n(sections use "## " headings, sentence-case titles)'
@@ -87,3 +87,12 @@ tests:
           }
       - type: llm-rubric
         value: tone-changes.json records at least one change and each entry has location, before, after, style_marker, reason, assessment_function, and facts_changed set to false.
+
+  - description: E7 — Verbose, caveat-heavy audit prose is rewritten as concise client-consultative guidance
+    vars:
+      draft: '## Identities\nIt was observed that multi-factor authentication is configured for all user accounts. However, it cannot be validated whether legacy authentication protocols remain enabled in all third-party applications, and no evidence was supplied regarding conditional access enforcement. Insufficient evidence exists to conclude full identity protection.\n\n## Devices\nDevice compliance was reported at 97%. It is important to note that this metric does not establish coverage of all endpoints, and the absence of non-compliant devices cannot be confirmed from the export.'
+      template: '## Identities\n## Devices'
+      run_state: '{"loop_counters":{"G4":0}}'
+    assert:
+      - type: llm-rubric
+        value: toned.md leads with supported conclusions, uses concise consultative prose, interprets findings for the client, and avoids repeated defensive caveats such as "cannot be validated," "no evidence was supplied," and "insufficient evidence exists" when a single clear qualification suffices. The output preserves all material qualifications but does not read like an audit memorandum.
