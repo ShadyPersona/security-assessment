@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "tone-changes.json — output of 05-tone-consistency",
   "type": "object",
-  "required": ["changes"],
+  "required": ["changes", "tables_reviewed", "observations"],
   "properties": {
     "changes": {
       "type": "array",
@@ -15,7 +15,7 @@
           "after": { "type": "string" },
           "style_marker": {
             "type": "string",
-            "description": "the convention applied, e.g. template_structure, template_formatting, narrative, voice, tense, cadence, terminology, hedging, explanatory_style, banned_patterns, client_significance, temporal_precision, significance_calibration, plain_voice, spelling, grammar, punctuation, inclusive_language, neutral_perspective, geopolitical_sensitivity, sentence_discipline, complete_sentences, scope_clarity, evidence_integration, active_framing, actionable_recommendations, assessment_first, consultant_voice, plain_language, qualification_discipline, narrative_evidence_balance, client_usefulness"
+            "description": "the convention applied, e.g. template_structure, template_formatting, narrative, voice, tense, cadence, terminology, hedging, explanatory_style, banned_patterns, client_significance, temporal_precision, significance_calibration, plain_voice, spelling, grammar, punctuation, inclusive_language, neutral_perspective, geopolitical_sensitivity, sentence_discipline, complete_sentences, scope_clarity, evidence_integration, active_framing, actionable_recommendations, assessment_first, consultant_voice, plain_language, qualification_discipline, narrative_evidence_balance, client_usefulness, table_interpretation"
           },
           "reason": {
             "type": "string",
@@ -30,6 +30,37 @@
             "type": "boolean",
             "description": "MUST be false — any true value is a substance-freeze violation and a G5 hard fail"
           }
+        }
+      }
+    },
+    "tables_reviewed": {
+      "type": "array",
+      "description": "one entry per table found in draft.md, whether edited or left unchanged",
+      "items": {
+        "type": "object",
+        "required": ["location", "purpose", "rows", "rows_edited"],
+        "properties": {
+          "location": { "type": "string", "description": "section / table name or caption" },
+          "purpose": { "type": "string", "description": "what the table conveys" },
+          "rows": { "type": "integer", "description": "total rows in the table" },
+          "rows_edited": { "type": "integer", "description": "number of rows rewritten" }
+        }
+      }
+    },
+    "observations": {
+      "type": "array",
+      "description": "draft issues detected but not corrected, for human review",
+      "items": {
+        "type": "object",
+        "required": ["location", "type", "detail", "action_required"],
+        "properties": {
+          "location": { "type": "string" },
+          "type": {
+            "type": "string",
+            "enum": ["table_prose_mismatch", "total_reconciliation", "cross_reference", "terminology", "template_deviation"]
+          },
+          "detail": { "type": "string" },
+          "action_required": { "type": "string", "enum": ["confirm", "correct in draft", "accept deviation"] }
         }
       }
     }

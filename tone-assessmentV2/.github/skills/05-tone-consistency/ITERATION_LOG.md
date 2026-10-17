@@ -4,6 +4,17 @@ Evidence of prompt evolution following Red/Green/Refactor (EDD) discipline.
 
 ---
 
+## Iteration 7 — Tables in Scope for Consultative Review
+
+**Date:** 2026-10-21
+**Problem:** A re-review of the 2026-Q3-IRONTRAX run found that step 05 had not reviewed table content; the G5 checker initially excluded table text. The result was 16 verbless or semicolon-joined evidence-gap fragments in table cells.
+**Change:** Rewrote the skill to treat tables as part of “the document.” Added Section C (Table review): mandatory inventory of every table, row-level review, cell-type rules (evidence-label/reference shorthand preserved; narrative cells rewritten as complete sentences), frozen table structure, table–prose consistency check with `observations`, and row-level logging in `tone-changes.json`. Added `tables_reviewed` and `observations` top-level arrays to the output. Clarified that the Security Awareness exemption applies to awareness table cells. Added `table_interpretation` `style_marker`.
+**Design decisions:**
+- Table factual tokens remain under the substance freeze.
+- Draft errors and mismatches are reported, not silently fixed.
+- Optional placeholders never trigger a punch-out.
+**Eval status:** Covered by existing E6/E7 and new E8 table-rewrite case (to be added). Attempted 2026-10-21; blocked because `OPENAI_API_KEY` and `ANTHROPIC_API_KEY` are not set.
+
 ## Iteration 6 — Client-Consultative Writing Standard
 
 **Date:** 2026-10-21

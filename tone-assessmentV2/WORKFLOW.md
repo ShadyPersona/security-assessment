@@ -22,7 +22,7 @@ no paths, files, or skills outside `tone-assessmentV2/` are referenced.
 
 ## Inputs
 
-All inputs are placed in `runs/<YYYY-QN>/inputs/` before the run starts.
+All inputs are placed in `runs/<run-id>/inputs/` before the run starts.
 Exactly ONE document is modified; the template is read-only.
 
 | # | Source | Role |
@@ -39,7 +39,7 @@ workflow.
 
 ## Run Layout
 
-- Working artifacts live in `runs/<YYYY-QN>/` (see `runs/README.md`).
+- Working artifacts live in `runs/<run-id>/` (see `runs/README.md`).
 - `templates/run-state.json` tracks `loop_counters` (G4/G5, max 2) and
   punch-out `approved` status.
 - `tone-changes.json` MUST validate against `schemas/tone-changes.schema.json` —
@@ -80,29 +80,36 @@ review performed inside a step. All are automated.
   met (voice, tense, terminology, cadence, hedging, banned patterns
   absent, spelling/grammar/punctuation correct, inclusive and neutral
   language, no sensitive geopolitical references); every sentence has a
-  clear subject and verb and states one idea; semicolons connect only
-  closely related clauses; evidence gaps are integrated as supporting
-  context, not left as raw fragments; scope is stated in plain language;
-  every substantive finding or risk is paired with a concrete client
-  action; sections lead with supported conclusions rather than
-  methodology or evidence limitations; technical findings are interpreted
-  for the client rather than restated; concise consultative prose without
-  defensive caveat-stacking; every substantive domain answers what was
-  assessed, what changed, why it matters, and what's next; significance is
-  tied to the client's business risk; movement claims are temporally
-  anchored; positive findings are calibrated with their limitations; no
-  noun stacks or product-vendor grammar remain. A data-first, unchanged,
-  or merely word-patched draft fails even with zero banned patterns
-  present.
+  clear subject and verb and states one idea, including inside table
+  narrative cells; semicolons connect only closely related clauses;
+  evidence gaps are integrated as supporting context, not left as raw
+  fragments; scope is stated in plain language; every substantive finding
+  or risk is paired with a concrete client action; sections lead with
+  supported conclusions rather than methodology or evidence limitations;
+  technical findings are interpreted for the client rather than restated;
+  concise consultative prose without defensive caveat-stacking; every
+  substantive domain answers what was assessed, what changed, why it
+  matters, and what's next; significance is tied to the client's business
+  risk; movement claims are temporally anchored; positive findings are
+  calibrated with their limitations; no noun stacks or product-vendor
+  grammar remain; table captions, row labels, and narrative cells are
+  reviewed for banned patterns, vague temporal terms, and sentence
+  discipline; every draft table is accounted for in
+  `tone-changes.json#tables_reviewed`. A data-first, unchanged, merely
+  word-patched, or table-unreviewed draft fails even with zero banned
+  patterns present.
 - Substance freeze check: every number, date, percentage, measurement,
   finding title, CIS/NIST reference, classification outcome, piece of
-  evidence, and recommendation in `toned.md` must exist in `draft.md`
-  unchanged; re-written/re-scoped evidence, invented facts in narrative
-  framing, or meaning-shifting paraphrase fails.
+  evidence, and recommendation in `toned.md` — including those inside
+  tables — must exist in `draft.md` unchanged; re-written/re-scoped
+  evidence, invented facts in narrative framing, shifted table-cell
+  meaning, or meaning-shifting paraphrase fails.
 - Change accountability: every draft→toned edit recorded in
   `tone-changes.json` (schema-validated) with `reason`,
-  `assessment_function`, and `facts_changed: false`. A change log with
-  no analytical `assessment_function` coverage fails.
+  `assessment_function`, and `facts_changed: false`; table edits verified
+  row by row; every draft table listed in `tables_reviewed`; draft issues
+  surfaced in `observations`. A change log with no analytical
+  `assessment_function` coverage fails.
 - Punch-out closure: every `triggered: true` punch-out must be
   `approved: true`. Unapproved = hard fail — STOP for human sign-off.
 - Step 06 acts as the adversarial reviewer of step 05 and only assembles the final deliverable after G5 passes.
@@ -145,8 +152,10 @@ per-step model/token/cost coverage across the whole pipeline.
 A run succeeds iff:
 1. G5 passes (assessment quality, substance freeze, change accountability,
    punch-out closure),
-2. every triggered punch-out is resolved with a recorded human decision, and
-3. the final report is emitted.
+2. every triggered punch-out is resolved with a recorded human decision,
+3. the final report is emitted, and
+4. the run result is appended to `audit/success-log.md` and step records to
+   `audit/run-YYYYMMDD.jsonl`.
 
 Per-run result appended to `audit/success-log.md`:
 

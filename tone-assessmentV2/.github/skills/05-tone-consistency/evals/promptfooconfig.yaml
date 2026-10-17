@@ -88,6 +88,20 @@ tests:
       - type: llm-rubric
         value: tone-changes.json records at least one change and each entry has location, before, after, style_marker, reason, assessment_function, and facts_changed set to false.
 
+  - description: E8 — Table narrative cells are rewritten for sentence discipline while preserving factual shorthand
+    vars:
+      draft: '## Endpoint Posture\n| Control | Evidence | Status |\n|---|---|---|\n| EDR | Agent deployment evidence: It was not available | Validate service owners and permissions |\n| DLP | Network telemetry is not sensitive-content disclosure; content totals: It was not available | Confirm approved use and restrictions |'
+      template: '## Endpoint Posture'
+      run_state: '{"loop_counters":{"G4":0}}'
+    assert:
+      - type: contains-json
+        value: |
+          {
+            "tone-changes.json": {"changes": [{"style_marker": "table_interpretation", "facts_changed": false}]}
+          }
+      - type: llm-rubric
+        value: toned.md rewrites verbless table cells into complete consultative sentences; factual shorthand (EDR, DLP) and evidence tokens are preserved unchanged; `tone-changes.json` includes `tables_reviewed` and `observations` arrays.
+
   - description: E7 — Verbose, caveat-heavy audit prose is rewritten as concise client-consultative guidance
     vars:
       draft: '## Identities\nIt was observed that multi-factor authentication is configured for all user accounts. However, it cannot be validated whether legacy authentication protocols remain enabled in all third-party applications, and no evidence was supplied regarding conditional access enforcement. Insufficient evidence exists to conclude full identity protection.\n\n## Devices\nDevice compliance was reported at 97%. It is important to note that this metric does not establish coverage of all endpoints, and the absence of non-compliant devices cannot be confirmed from the export.'

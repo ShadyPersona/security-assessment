@@ -4,6 +4,16 @@ Evidence of prompt evolution following Red/Green/Refactor (EDD) discipline.
 
 ---
 
+## Iteration 4 — G5 Expanded to Review Table Cells
+
+**Date:** 2026-10-21
+**Problem:** Step 05 was updated to review tables, but G5 did not yet explicitly scan table cells or verify table edits in `tone-changes.json`.
+**Change:** Updated G5 assessment-quality check to scan table captions, row labels, and narrative cells for banned patterns, vague temporal terms, and sentence discipline. Updated substance-freeze check to cover factual tokens inside tables. Updated change-accountability check to require `tables_reviewed` and `observations` arrays and to verify table edits row by row. A draft table missing from `tables_reviewed` is now a G5 failure.
+**Design decisions:**
+- Keeps 06 as the adversarial reviewer that independently challenges 05's table handling.
+- Factual tokens inside tables remain protected by the substance freeze.
+**Eval status:** Covered by existing E1–E7 and new E8 table-substance-freeze case (to be added). Attempted 2026-10-21; blocked because `OPENAI_API_KEY` and `ANTHROPIC_API_KEY` are not set.
+
 ## Iteration 3 — G5 Client-Consultative Quality Check
 
 **Date:** 2026-10-21

@@ -90,6 +90,19 @@ tests:
       - type: llm-rubric
         value: On a successful G5 pass with no unapproved punch-outs, the agent emits the final deliverable, writes audit-report.md, and appends to success-log.md.
 
+  - description: E8 — G5 catches a shifted table-cell meaning
+    vars:
+      toned: '## Endpoint Posture\n| Control | Evidence | Status |\n|---|---|---|\n| EDR | All 12 endpoints are fully protected. | Validate service owners and permissions |'
+      draft: '## Endpoint Posture\n| Control | Evidence | Status |\n|---|---|---|\n| EDR | Agent deployment evidence was not available. | Validate service owners and permissions |'
+      tone_changes: '{"changes":[{"location":"Endpoint Posture › EDR row","before":"| EDR | Agent deployment evidence was not available. | Validate service owners and permissions |","after":"| EDR | All 12 endpoints are fully protected. | Validate service owners and permissions |","style_marker":"table_interpretation","reason":"Improved wording","assessment_function":"evidence_interpretation","facts_changed":false}],"tables_reviewed":[{"location":"Endpoint Posture","purpose":"posture table","rows":1,"rows_edited":1}],"observations":[]}'
+      template: '## Endpoint Posture'
+      run_state: '{"punchouts":{"A_missing_content":{"triggered":false},"E_loop_exhaustion":{"triggered":false}},"loop_counters":{"G5":0}}'
+    assert:
+      - type: contains
+        value: G5 failure
+      - type: llm-rubric
+        value: The agent detects that the table cell changed the client-facing meaning of the evidence (from unavailable to fully protected) and records a G5 substance-freeze failure.
+
   - description: E7 — G5 failure prevents final deliverable assembly
     vars:
       toned: '## Identities\nWe turned on MFA. It is good.'

@@ -117,14 +117,20 @@ and template before proceeding.
    remain identical to `draft.md`. Evidence is quoted or faithfully
    restated, never re-written or re-scoped. Analysis may add
    interpretation and context but no fact absent from the draft.
-7. **Log every edit** in `tone-changes.json`. Each record requires:
-   `location`, `before`, `after`, `style_marker`, `reason` (what the edit
-   accomplished analytically), `assessment_function` (one of:
-   `executive_conclusion`, `quarter_movement`, `cross_signal_synthesis`,
-   `evidence_interpretation`, `security_significance`,
-   `evidence_limitation`, `recommendation_traceability`,
-   `historical_context`, `template_structure`, `professional_tone`), and
-   `facts_changed` (must be `false` — `true` is a hard fail).
+7. **Table review.** Inventory every table in `draft.md`; review each
+   row. Narrative cells (captions, row labels, interpretation columns) must
+   have clear subjects and verbs; verbless fragments, raw evidence-gap
+   labels, and semicolon-joined unrelated claims are rewritten as complete
+   consultative sentences. Reference/metric shorthand (CIS IDs, scores,
+   counts) is preserved. Table structure, rows, and columns are frozen.
+   Record any table-prose mismatch, total-reconciliation gap, or template
+   deviation as an observation; do not correct draft errors.
+8. **Log every edit** in `tone-changes.json`. Each prose edit and each
+   edited table row gets one record with: `location`, `before`, `after`,
+   `style_marker`, `reason`, `assessment_function`, and `facts_changed`
+   (must be `false`). Add `tables_reviewed` (one entry per table) and
+   `observations` (detected draft issues for human review) as top-level
+   arrays. Validate against `schemas/tone-changes.schema.json`.
 
 ## Step 06 — Adversarial Review & Finalize (run only after 05 completes)
 
@@ -143,20 +149,27 @@ and template before proceeding.
    scope; no noun stacks or product-vendor grammar remain; spelling,
    grammar, and punctuation are correct; language is inclusive and neutral;
    no sensitive geopolitical references; every sentence has a clear
-   subject and verb and states one idea; semicolons connect only closely
-   related clauses; evidence gaps are integrated as supporting context;
-   scope is stated in plain language; every substantive finding or risk is
-   paired with a concrete client action; the document reads as consultant
-   guidance rather than audit/Secure Score commentary; technical findings
-   are interpreted for the client; concise consultative prose without
-   defensive caveat-stacking. A data-first, unchanged, or word-patched
-   `toned.md` fails even with zero banned patterns.
+   subject and verb and states one idea, including inside table narrative
+   cells; semicolons connect only closely related clauses; evidence gaps
+   are integrated as supporting context; scope is stated in plain language;
+   every substantive finding or risk is paired with a concrete client
+   action; the document reads as consultant guidance rather than audit/Secure
+   Score commentary; technical findings are interpreted for the client;
+   concise consultative prose without defensive caveat-stacking; table
+   captions, row labels, and narrative cells are reviewed for banned
+   patterns, vague temporal terms, and sentence discipline; every draft
+   table is listed in `tone-changes.json#tables_reviewed`. A data-first,
+   unchanged, word-patched, or table-unreviewed `toned.md` fails even with
+   zero banned patterns.
 2. **Substance freeze:** every factual token in `toned.md` exists in
-   `draft.md` unchanged; no re-written/re-scoped evidence; no invented
-   facts in narrative framing; no meaning-shifting paraphrase.
-3. **Change accountability:** `tone-changes.json` is complete and
-   schema-valid; every draft→toned edit is recorded; all records have
-   `facts_changed: false`; the `assessment_function` coverage demonstrates
+   `draft.md` unchanged, including those inside tables; no re-written/re-scoped
+   evidence; no invented facts in narrative framing; no shifted table-cell
+   meaning; no meaning-shifting paraphrase.
+3. **Change accountability:** `tone-changes.json` is complete,
+   schema-valid, and contains both `tables_reviewed` and `observations`;
+   every draft→toned edit is recorded, with table edits verified row by row;
+   all records have `facts_changed: false`; every draft table appears in
+   `tables_reviewed`; the `assessment_function` coverage demonstrates
    analytical synthesis (a log of only `template_structure`/
    `professional_tone` fails — it means no real rewrite happened).
 4. **Punch-out closure:** no unresolved `punchout-missing-content.md`.

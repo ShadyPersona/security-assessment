@@ -50,6 +50,8 @@ This document records the design lineage of the tone-assessment workflow for Sta
 | Align G5 with assessment-synthesis model | 2026-10-14 | `06-adversarial-review/ITERATION_LOG.md` Iteration 1 |
 | Refactor 06 as Adversarial Review & Finalize | 2026-10-21 | `06-adversarial-review/ITERATION_LOG.md` Iteration 2 |
 | G5 client-consultative quality check | 2026-10-21 | `06-adversarial-review/ITERATION_LOG.md` Iteration 3 |
+| Tables in scope for consultative review | 2026-10-21 | `05-tone-consistency/ITERATION_LOG.md` Iteration 7 |
+| G5 expanded to review table cells | 2026-10-21 | `06-adversarial-review/ITERATION_LOG.md` Iteration 4 |
 
 ### Eval coverage
 

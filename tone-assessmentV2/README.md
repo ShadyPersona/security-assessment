@@ -32,7 +32,7 @@ tone-assessmentV2/
 ├── schemas/
 │   └── tone-changes.schema.json   (step 05 output contract, checked at G5)
 ├── templates/run-state.json   ← loop counters + punch-out approval flags
-├── runs/README.md             ← per-run directory layout (2 inputs)
+├── runs/README.md             ← per-run directory layout (run-id named, 2 inputs)
 └── audit/                     ← cross-run evidence (append-only)
     ├── guardrails.jsonl           (one record per guardrail check)
     ├── punchout-log.md            (halts, bypass tests, human decisions)
@@ -57,8 +57,8 @@ tone-assessmentV2/
 
 ## Running the workflow
 
-1. Create `runs/<YYYY-QN>/`, copy `templates/run-state.json` into it, and
-   place the two inputs in `runs/<YYYY-QN>/inputs/`.
+1. Create `runs/<run-id>/`, copy `templates/run-state.json` into it, and
+   place the two inputs in `runs/<run-id>/inputs/`.
 2. Invoke skill `05-tone-consistency` → produces `toned.md`,
    `tone-changes.json`, and the G4 record.
 3. Invoke skill `06-adversarial-review` → runs the G5 adversarial review of
